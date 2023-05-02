@@ -1,0 +1,92 @@
+ Dn computacional e comparacao com analitico
+
+
+% Definição de variáveis
+
+T0 = 16; %período 
+w0 = (2*pi)/T0; %frequencia angular
+N = 50; 
+tD = linspace(-T0/2,T0/2,100);  %tempo p Dn
+gt = [];  % definicao do sinal
+i = 0;  %constante iterativa
+Dn = [];  % Armazenagem das amplitudes da forma computacional
+DnA = []; % Armazenagem das amplitudes da forma analitica
+
+% Definição de variaveis simbolicas
+syms tf  %tempo t
+syms Ft % definicao da funcao F=g(t) continua
+Ft = 0; %Inicio de F=g(t)= iniciando com valor nulo
+syms tA %tempo para o metodo analitico continuo
+syms gA %definicao da funcao F=g(t) da forma analitica
+gA = 0;
+
+
+
+for i = 1: length(tD) %montagem do sinal através dos dados, pode-se montar:
+
+ if (tD(i) <= -4) gt(i) = 0;
+ elseif (-4< tD(i) & tD(i) <= -2) gt(i) = 1;
+ elseif (-2<tD(i) & tD(i) <= -1) gt(i) = 2;
+ elseif (-1<tD(i) & tD(i) <= 1) gt(i) = 3;
+ elseif (1<tD(i) & tD(i) <=2 ) gt(i) = 2;
+ elseif (2<tD(i) & tD(i) <= 4) gt(i) = 1;
+ else gt(i) = 0; end;  
+
+end;
+figure('Name', 'grafico sinal g(t) montado através dos dados') 
+plot(tD,gt);  %grafico do sinal montado
+
+
+%Integral numerica(trapezoidal) de Dn, nos limites, com N variando de -N até N
+for i = -N: N
+
+ Dn(i+N+1) = (1/T0)*trapz(tD,gt.*exp(-j*i*w0*tD));
+
+end
+
+
+%Síntese de Fourier
+
+for i = -N: N
+
+ Ft = Ft + Dn(i+N+1)*exp(j*i*w0*tf); %eq. de fourrier com os valores de Dn calculado, iterativamente realizando a somatoria de -N até N, todos os termos multiplicados por exp(j*i*w0*tf);
+
+
+end
+
+% Simbolico para numerico
+
+tf = tD;
+Ft = eval(Ft);
+figure('Name', 'grafico sinal g(t) com Dns calculado computacionalmente')
+plot(tf,Ft, color = 'green'); %serie de Fourrier computacional
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Comparacao entre metodo computacional e analitico, iremos realizar o calculo de Dn pela equacao resolvida na folha%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Somatoria dos Dns calculados analiticamente
+for i = -N:N
+
+ if(i ~= 0)
+  DnA(i+N+1) = ((sin(i*pi/8)+sin(i*pi/4)+sin(i*pi/2))/(i*pi));
+ end;
+
+ if(i == 0)
+  DnA(i+N+1) = 7/8;
+ end;
+
+end
+
+%Serie de Fourrier utilizando os Dns, calculados analiticamente
+for i = -N: N
+
+ gA = gA + Dn(i+N+1)*exp(j*i*w0*tA);
+
+end
+
+%Simbolico para numerico
+tA = tD;
+gA = eval(gA);
+figure('Name', 'grafico sinal g(t) com Dns calculado analiticamente')
+plot(tA,gA, color = 'yellow'); %série de Fourier analitica
